@@ -1,0 +1,219 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: CrashTeam GPT Marketplace Analytics API
+  description: |
+    CrashTeam Dev KazanExpress Analytics API
+  termsOfService: http://marketdb.ru/terms-of-use/
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://{subdomain}.marketdb.pro/{version}
+    variables:
+      subdomain:
+        default: api
+      version:
+        enum:
+          - v1
+          - v2
+        default: v2
+security:
+  - apiKey: []
+paths:
+  /gpt/product/{productId}/sku/{skuId}/sales:
+    get:
+      summary: Получить историю товара
+      operationId: gptProductSkuHistory
+      security:
+        - apiKey: []
+      tags:
+        - product
+      parameters:
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/productResourceId'
+        - $ref: '#/components/parameters/productSkuResourceId'
+        - $ref: '#/components/parameters/fromTime'
+        - $ref: '#/components/parameters/toTime'
+      responses:
+        '200':
+          description: Получена история изменения товара
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductSkuHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: История товара не найдена
+components:
+  securitySchemes:
+    apiKey:
+      description: >
+        Для аутентификации вызовов из расширения мы используем API ключ.
+        Cоответствующий ключ передается в заголовке.
+
+        ```shell
+          X-API-KEY: 4AcpWqDM.s1c7f96bfp8abc773d07vcl50404ff8d58c943a5b4119f396513b1f8199ab955
+        ```
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    apiKey:
+      name: X-API-KEY
+      in: header
+      description: Уникальный токен пользователя
+      required: true
+      schema:
+        type: string
+    productResourceId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProductId'
+    productSkuResourceId:
+      name: skuId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProductSkuId'
+    fromTime:
+      name: fromTime
+      in: query
+      description: Start date time.
+      required: true
+      schema:
+        $ref: '#/components/schemas/DateTime'
+    toTime:
+      name: toTime
+      in: query
+      description: End date time.
+      required: true
+      schema:
+        $ref: '#/components/schemas/DateTime'
+  schemas:
+    ProductId:
+      description: Идентификатор продукта
+      type: integer
+      format: int64
+      readOnly: true
+    ProductSkuId:
+      description: Идентификатор sku продукта
+      type: integer
+      format: int64
+      readOnly: true
+    DateTime:
+      type: string
+      format: date-time
+    PhotoKey:
+      type: string
+      description: Уникальный идентификатор картинки
+    ProductSkuHistory:
+      type: object
+      description: История изменений товара
+      properties:
+        productId:
+          $ref: '#/components/schemas/ProductId'
+        skuId:
+          $ref: '#/components/schemas/ProductSkuId'
+        name:
+          description: Название товара
+          type: string
+        orderAmount:
+          description: Кол-во заказов товара
+          type: integer
+          format: int64
+        reviewsAmount:
+          description: Кол-во отзывов
+          type: integer
+          format: int64
+        totalAvailableAmount:
+          description: Общее кол-во остатков товара по productId
+          type: integer
+          format: int64
+        fullPrice:
+          description: Полная цена без учета скидки
+          type: number
+          format: double
+          example: 10
+        purchasePrice:
+          description: Цена с учетом скидки
+          type: number
+          format: double
+          example: 10
+        availableAmount:
+          description: Кол-во остатков товара по skuId
+          type: integer
+          format: int64
+        salesAmount:
+          description: Выручка
+          type: number
+          format: double
+          example: 100
+        photoKey:
+          $ref: '#/components/schemas/PhotoKey'
+        date:
+          description: День, в рамках которого зафиксированы изменения товара
+          type: string
+          format: date
+          example: '2023-03-16'
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          minimum: 100
+          maximum: 600
+          description: The HTTP status code.
+        error:
+          type: string
+        type:
+          type: string
+          description: >-
+            A URI reference [[RFC3986](https://tools.ietf.org/html/rfc3986)]
+            that identifies the problem type. It should provide human-readable
+            documentation for the problem type. When this member is not present,
+            its value is assumed to be "about:blank".
+        title:
+          type: string
+          description: >-
+            A short, human-readable summary of the problem type. It SHOULD NOT
+            change from occurrence to occurrence of the problem, except for
+            purposes of localization.
+  responses:
+    BadRequest:
+      description: Переданы ошибочные данные
+      content:
+        application/json:
+          schema:
+            description: Ошибка в переданных данных
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+                enum:
+                  - invalidRequest
+              message:
+                type: string
+    Unauthorized:
+      description: Несанкционированный доступ, использовались неверные учетные данные.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Access forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
