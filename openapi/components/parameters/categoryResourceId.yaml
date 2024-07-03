@@ -1,0 +1,5 @@
+name: categoryId
+in: path
+required: true
+schema:
+  $ref: '../schemas/CategoryId.yaml'
