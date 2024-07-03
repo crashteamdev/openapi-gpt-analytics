@@ -1,0 +1,31 @@
+get:
+  summary: Получить историю товара
+  operationId: gptProductSkuHistory
+  security:
+    - apiKey: []
+  tags:
+    - product
+  parameters:
+    - $ref: '../components/parameters/apiKey.yaml'
+    - $ref: '../components/parameters/productResourceId.yaml'
+    - $ref: '../components/parameters/productSkuResourceId.yaml'
+    - $ref: '../components/parameters/fromTime.yaml'
+    - $ref: '../components/parameters/toTime.yaml'
+  responses:
+    '200':
+      description: Получена история изменения товара
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/ProductSkuHistory.yaml'
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      description: История товара не найдена
+
