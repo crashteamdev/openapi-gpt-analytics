@@ -20,7 +20,6 @@ servers:
         default: v2
 security:
   - apiKey: []
-  - bearer: []
 paths:
   '/gpt/product/{productId}/sku/{skuId}/sales':
     $ref: './paths/product@{productId}sku@{skuId}sales.yaml'
